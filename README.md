@@ -76,7 +76,9 @@ A few conventions worth knowing before changing things:
   reasons. The dialog calls it during render to preview a refusal, and `api.ts` calls it again on
   write, so the UI cannot save something its own checks would have blocked.
 - **Writes are optimistic.** A new booking appears immediately with a temporary id and is rolled
-  back if the write is refused, so the grid never jumps while a request is in flight.
+  back if the write is refused, so the grid never jumps while a request is in flight. Moving a
+  booking excludes it from its own clash check, so a one-slot nudge is not read as a collision
+  with where it used to be.
 - **Persistence is defensive.** Anything read back from `localStorage` is validated, and a value
   written by an older build degrades to the default instead of breaking the board.
 - **Accessibility is part of "done".** The grid is one tab stop with roving focus and arrow-key

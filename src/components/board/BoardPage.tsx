@@ -6,7 +6,8 @@ import { Dialog } from '@/components/ui/Dialog'
 import { useToast } from '@/components/ui/toast-context'
 import { DAY_NAMES, MACHINES, MACHINES_BY_ID, OPENING_HOURS } from '@/data/workshop'
 import { cx } from '@/lib/cx'
-import { formatClock, formatWeekMinute } from '@/lib/weektime'
+import { SLOT_MINUTES } from '@/data/workshop'
+import { durationOf, formatClock, formatDuration, formatWeekMinute } from '@/lib/weektime'
 import { useBoard } from '@/state/board-context'
 import { useSession } from '@/state/session-context'
 import type { Booking, BookingDraft, Machine, Rejection } from '@/types'
@@ -23,7 +24,7 @@ interface SlotTarget {
 
 export function BoardPage() {
   const { member } = useSession()
-  const { bookings, pendingIds, createBooking, cancelBooking } = useBoard()
+  const { bookings, pendingIds, createBooking, updateBooking, cancelBooking } = useBoard()
   const { notify } = useToast()
 
   const [day, setDay] = useState(0)
@@ -76,6 +77,36 @@ export function BoardPage() {
       }
     },
     [createBooking, notify],
+  )
+
+  // Nudges a booking one slot earlier or later, keeping its length.
+  const shift = useCallback(
+    async (booking: Booking, slots: number) => {
+      const offset = slots * SLOT_MINUTES
+      const result = await updateBooking(booking.id, {
+        machineId: booking.machineId,
+        memberId: booking.memberId,
+        startMinute: booking.startMinute + offset,
+        endMinute: booking.endMinute + offset,
+        note: booking.note,
+      })
+
+      if (result.ok && result.booking) {
+        setInspected(result.booking)
+        notify({
+          title: 'Booking moved',
+          description: `${formatWeekMinute(result.booking.startMinute)} – ${formatClock(result.booking.endMinute)}`,
+          tone: 'success',
+        })
+      } else {
+        notify({
+          title: 'Could not move that booking',
+          description: result.rejections?.[0]?.message,
+          tone: 'error',
+        })
+      }
+    },
+    [updateBooking, notify],
   )
 
   const drop = useCallback(
@@ -219,8 +250,29 @@ export function BoardPage() {
             ) : (
               <Badge tone="neutral">Booked by another member</Badge>
             )}
+            <Badge tone="neutral">{formatDuration(durationOf(inspected))}</Badge>
           </p>
           {inspected.note ? <p className={styles.note}>{inspected.note}</p> : null}
+
+          {inspected.memberId === member.id ? (
+            <div className={styles.move}>
+              <span className={styles.moveLabel}>Move</span>
+              <Button
+                size="sm"
+                disabled={pendingIds.has(inspected.id)}
+                onClick={() => shift(inspected, -1)}
+              >
+                Half an hour earlier
+              </Button>
+              <Button
+                size="sm"
+                disabled={pendingIds.has(inspected.id)}
+                onClick={() => shift(inspected, 1)}
+              >
+                Half an hour later
+              </Button>
+            </div>
+          ) : null}
         </Dialog>
       ) : null}
     </div>
