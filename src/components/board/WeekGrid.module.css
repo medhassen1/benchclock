@@ -1,0 +1,130 @@
+.scroller {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 168px repeat(var(--slot-count), minmax(38px, 1fr));
+  min-width: max-content;
+}
+
+.headRow,
+.row {
+  display: contents;
+}
+
+.headCell {
+  position: sticky;
+  top: 0;
+  padding: var(--space-2) 2px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.corner {
+  text-align: left;
+  padding-left: var(--space-3);
+}
+
+.rowHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.machineCode {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 20px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.machineName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cellWrap {
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  padding: 2px;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 100ms ease;
+}
+
+.cellMark {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.free:hover {
+  background: rgb(217 139 58 / 0.18);
+  border-color: var(--accent);
+}
+
+.mine {
+  background: rgb(217 139 58 / 0.34);
+  border-color: var(--accent);
+  color: var(--accent-soft);
+}
+
+.taken {
+  background: rgb(168 159 146 / 0.16);
+  border-color: rgb(168 159 146 / 0.3);
+  color: var(--text-faint);
+}
+
+.offline {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgb(212 103 79 / 0.16) 4px,
+    rgb(212 103 79 / 0.16) 8px
+  );
+  cursor: not-allowed;
+}
+
+.pending {
+  opacity: 0.55;
+}
+
+.closed {
+  padding: var(--space-7) var(--space-4);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
