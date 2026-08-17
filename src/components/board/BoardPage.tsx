@@ -8,7 +8,9 @@ import { DAY_NAMES, MACHINES, MACHINES_BY_ID, OPENING_HOURS } from '@/data/works
 import { cx } from '@/lib/cx'
 import { SLOT_MINUTES } from '@/data/workshop'
 import { durationOf, formatClock, formatDuration, formatWeekMinute } from '@/lib/weektime'
+import { MEMBERS_BY_ID } from '@/data/workshop'
 import { useBoard } from '@/state/board-context'
+import { useWaitlist } from '@/state/waitlist-context'
 import { useSession } from '@/state/session-context'
 import type { Booking, BookingDraft, Machine, Rejection } from '@/types'
 
@@ -26,6 +28,7 @@ export function BoardPage() {
   const { member } = useSession()
   const { bookings, pendingIds, createBooking, updateBooking, cancelBooking } = useBoard()
   const { notify } = useToast()
+  const { promote } = useWaitlist()
 
   const [day, setDay] = useState(0)
   const [hideUnavailable, setHideUnavailable] = useState(false)
@@ -119,6 +122,24 @@ export function BoardPage() {
         return
       }
 
+      // Someone may have been queuing for exactly this slot; hand it to the
+      // first person still eligible before offering the undo.
+      const outcome = await promote({
+        machineId: booking.machineId,
+        startMinute: booking.startMinute,
+        endMinute: booking.endMinute,
+      })
+
+      if (outcome.promoted) {
+        const name = MEMBERS_BY_ID.get(outcome.promoted.memberId)?.name ?? 'the next member'
+        notify({
+          title: 'Slot passed to the waiting list',
+          description: `${name} now holds ${MACHINES_BY_ID.get(booking.machineId)?.name} at ${formatClock(booking.startMinute)}.`,
+          tone: 'info',
+        })
+        return
+      }
+
       notify({
         title: `Cancelled ${MACHINES_BY_ID.get(booking.machineId)?.name}`,
         description: `${formatWeekMinute(booking.startMinute)} is free again`,
@@ -136,7 +157,7 @@ export function BoardPage() {
         },
       })
     },
-    [cancelBooking, createBooking, notify],
+    [cancelBooking, createBooking, notify, promote],
   )
 
   return (

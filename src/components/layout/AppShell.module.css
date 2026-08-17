@@ -97,7 +97,7 @@
 
 .nav {
   flex: none;
-  width: 176px;
+  width: 190px;
   padding: var(--space-4) var(--space-3);
   border-right: 1px solid var(--border);
 }
@@ -170,5 +170,42 @@
 
   .main {
     padding: var(--space-4);
+  }
+}
+
+.navGroup + .navGroup {
+  margin-top: var(--space-4);
+}
+
+.navTitle {
+  padding: 0 var(--space-3) var(--space-2);
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.paletteHint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-faint);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.kbd {
+  padding: 1px 5px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+@media (max-width: 760px) {
+  .paletteHint {
+    display: none;
   }
 }

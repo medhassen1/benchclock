@@ -6,7 +6,6 @@ import { DataPage } from '@/components/data/DataPage'
 import { configureLatency, resetIdCounter } from '@/lib/api'
 import { AUDIT_STORAGE_KEY, type AuditEntry } from '@/lib/audit'
 import { weekMinute } from '@/lib/weektime'
-import { AuditProvider } from '@/state/AuditProvider'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import type { Booking } from '@/types'
 
@@ -32,7 +31,8 @@ function trail(): AuditEntry[] {
 }
 
 const renderPage = ({ withAudit = true } = {}) =>
-  renderWithProviders(withAudit ? <AuditProvider><DataPage /></AuditProvider> : <DataPage />, {
+  renderWithProviders(<DataPage />, {
+    withAudit,
     route: '/data',
   })
 

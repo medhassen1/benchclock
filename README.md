@@ -52,6 +52,34 @@ once rather than one per attempt:
 Touching intervals do not clash: a booking ending at 18:00 and one starting at 18:00 are both fine,
 unless the machine has a cool-down.
 
+## What's in it
+
+| Area | Pages |
+| --- | --- |
+| Booking | Board (week grid), My bookings, Repeats (recurring series), Waiting for (waitlist) |
+| Workshop | Inductions, Maintenance, Stock |
+| Insight | Usage, Reports, Activity (audit trail) |
+| Manage | Import & export (CSV), Admin, Settings |
+
+Beyond placing a booking, the board handles the things a real workshop runs into:
+
+- **Repeating bookings** — a series is stored once and expanded a week at a time, so clashes,
+  cool-down and the weekly allowance are judged per week. Refused weeks can be skipped or the
+  whole series abandoned.
+- **Waitlists** — join a queue for a taken slot. When the holder cancels, the slot passes to the
+  first person still eligible; anyone who no longer qualifies is skipped rather than handed a
+  booking that would be refused.
+- **Maintenance** — servicing windows block bookings, and machines are flagged overdue against a
+  run-hours interval. Only keyholders may record a completed service.
+- **Inductions and stock** — training sessions grant the sign-offs that unlock machines, and
+  consumables draw down against booked time with reorder thresholds.
+- **Reports** — utilisation per machine, an occupancy heatmap, peak hours, and a member
+  leaderboard. Utilisation clips to opening hours; the leaderboard deliberately does not, because
+  that is what the allowance actually charges.
+- **Import and export** — a dependency-free RFC 4180 CSV reader and writer, with a preview and
+  per-row errors before anything is applied.
+- **Command palette** — `Ctrl`/`Cmd` + `K` for keyboard-first navigation.
+
 ## Architecture
 
 ```
@@ -62,10 +90,13 @@ src/
                 rules.ts     the rules engine, pure and framework-free
                 api.ts       cancellable async facade that re-checks the rules
                 storage.ts   validated localStorage helpers
-  hooks/        usePersistentState
-  state/        BoardProvider (bookings, optimistic writes), SessionProvider
-  components/   ui/ primitives, then board/, bookings/, usage/, layout/
-  test/         Shared provider harness for component tests
+  hooks/        usePersistentState, useHotkeys
+  state/        One provider per concern: board, session, series, waitlist,
+                maintenance, stock, audit, workshop config, preferences
+  components/   ui/ primitives, then board/, bookings/, series/, waitlist/,
+                inductions/, maintenance/, stock/, usage/, reports/, audit/,
+                data/, admin/, settings/, palette/, layout/
+  test/         Shared provider harness mirroring the app's provider stack
 ```
 
 A few conventions worth knowing before changing things:
@@ -83,7 +114,10 @@ A few conventions worth knowing before changing things:
   written by an older build degrades to the default instead of breaking the board.
 - **Accessibility is part of "done".** The grid is one tab stop with roving focus and arrow-key
   navigation, dialogs trap focus and restore it, every cell has a full accessible name, and every
-  status that uses colour also states its meaning in text or a shape.
+  status that uses colour also states its meaning in text or a shape. The occupancy heatmap is a
+  real table whose cells are named "Monday 18:00, 75% booked" — the colour is decoration.
+- **The test harness mirrors the app.** `src/test/renderWithProviders.tsx` mounts the same
+  provider stack as `App.tsx`. If a page works in one and not the other, those two have drifted.
 
 ## Testing
 

@@ -54,6 +54,56 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'No bookings yet' })).toBeInTheDocument()
   })
 
+  it.each([
+    ['/series', 'Repeats'],
+    ['/waitlist', 'Waiting for'],
+    ['/inductions', 'Inductions'],
+    ['/maintenance', 'Maintenance'],
+    ['/stock', 'Stock'],
+    ['/reports', 'Reports'],
+    ['/audit', 'Activity'],
+    ['/data', 'Import & export'],
+    ['/admin', 'Admin'],
+    ['/settings', 'Settings'],
+  ])('renders %s and marks its nav link current', (route, label) => {
+    renderApp(route)
+
+    expect(within(sections()).getByRole('link', { name: label })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('groups the navigation into labelled sections', () => {
+    renderApp()
+
+    for (const group of ['Booking', 'Workshop', 'Insight', 'Manage']) {
+      expect(within(sections()).getByRole('list', { name: group })).toBeInTheDocument()
+    }
+  })
+
+  it('opens the command palette from anywhere in the shell', async () => {
+    renderApp('/usage')
+
+    await userEvent.keyboard('{Control>}k{/Control}')
+
+    // The member picker is also a combobox, so scope by accessible name.
+    expect(await screen.findByRole('combobox', { name: 'Run a command' })).toBeInTheDocument()
+  })
+
+  it('navigates from the command palette', async () => {
+    renderApp()
+
+    await userEvent.keyboard('{Control>}k{/Control}')
+    await userEvent.type(
+      await screen.findByRole('combobox', { name: 'Run a command' }),
+      'heatmap',
+    )
+    await userEvent.keyboard('{Enter}')
+
+    expect(await screen.findByRole('heading', { name: 'Reports' })).toBeInTheDocument()
+  })
+
   it('redirects an unknown route back to the board', () => {
     renderApp('/nope')
 
