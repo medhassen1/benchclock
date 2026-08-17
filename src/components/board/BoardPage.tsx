@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/toast-context'
 import { DAY_NAMES, MACHINES, MACHINES_BY_ID, OPENING_HOURS } from '@/data/workshop'
 import { cx } from '@/lib/cx'
 import { formatClock, formatWeekMinute } from '@/lib/weektime'
@@ -22,6 +23,7 @@ interface SlotTarget {
 export function BoardPage() {
   const { member } = useSession()
   const { bookings, pendingIds, createBooking, cancelBooking } = useBoard()
+  const { notify } = useToast()
 
   const [day, setDay] = useState(0)
   const [hideUnavailable, setHideUnavailable] = useState(false)
@@ -29,7 +31,6 @@ export function BoardPage() {
   const [inspected, setInspected] = useState<Booking | null>(null)
   const [saving, setSaving] = useState(false)
   const [rejections, setRejections] = useState<readonly Rejection[]>([])
-  const [announcement, setAnnouncement] = useState('')
 
   const machines = useMemo(
     () =>
@@ -58,27 +59,51 @@ export function BoardPage() {
       setSaving(false)
       if (result.ok) {
         setTarget(null)
-        setAnnouncement(
-          `Booked ${MACHINES_BY_ID.get(draft.machineId)?.name} for ${formatWeekMinute(draft.startMinute)}.`,
-        )
+        notify({
+          title: `Booked ${MACHINES_BY_ID.get(draft.machineId)?.name}`,
+          description: `${formatWeekMinute(draft.startMinute)} – ${formatClock(draft.endMinute)}`,
+          tone: 'success',
+        })
       } else {
         setRejections(result.rejections ?? [])
+        notify({
+          title: 'Booking refused',
+          description: result.rejections?.[0]?.message,
+          tone: 'error',
+        })
       }
     },
-    [createBooking],
+    [createBooking, notify],
   )
 
   const drop = useCallback(
     async (booking: Booking) => {
       setInspected(null)
       const ok = await cancelBooking(booking.id)
-      setAnnouncement(
-        ok
-          ? `Cancelled ${MACHINES_BY_ID.get(booking.machineId)?.name} at ${formatClock(booking.startMinute)}.`
-          : 'That booking could not be cancelled.',
-      )
+
+      if (!ok) {
+        notify({ title: 'That booking could not be cancelled', tone: 'error' })
+        return
+      }
+
+      notify({
+        title: `Cancelled ${MACHINES_BY_ID.get(booking.machineId)?.name}`,
+        description: `${formatWeekMinute(booking.startMinute)} is free again`,
+        action: {
+          label: 'Undo',
+          onSelect: () => {
+            void createBooking({
+              machineId: booking.machineId,
+              memberId: booking.memberId,
+              startMinute: booking.startMinute,
+              endMinute: booking.endMinute,
+              note: booking.note,
+            })
+          },
+        },
+      })
     },
-    [cancelBooking],
+    [cancelBooking, createBooking, notify],
   )
 
   return (
@@ -144,10 +169,6 @@ export function BoardPage() {
           <span className={cx(styles.swatch, styles.swatchFree)} aria-hidden="true" /> Free
         </span>
         <span className={styles.hint}>Arrow keys move around the grid.</span>
-      </p>
-
-      <p role="status" aria-live="polite" className="visually-hidden">
-        {announcement}
       </p>
 
       {target ? (

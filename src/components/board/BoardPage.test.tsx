@@ -54,14 +54,14 @@ describe('BoardPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('announces the booking politely', async () => {
+  it('announces the booking in a polite toast', async () => {
     renderWithProviders(<BoardPage />)
 
     await book()
 
-    await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('Booked Big laser for Mon 17:00.'),
-    )
+    const toast = await screen.findByRole('status')
+    expect(toast).toHaveTextContent('Success: Booked Big laser')
+    expect(toast).toHaveTextContent('Mon 17:00 – 18:00')
   })
 
   it('blocks confirming when the member lacks the sign-off', async () => {
@@ -133,6 +133,41 @@ describe('BoardPage', () => {
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText('Booked by another member')).toBeInTheDocument()
     expect(within(dialog).queryByRole('button', { name: 'Cancel booking' })).not.toBeInTheDocument()
+  })
+
+  it('offers an undo after cancelling, which puts the slot back', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await book()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await userEvent.click(
+      within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked by you' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel booking' }))
+
+    await waitFor(() => expect(freeCell()).toBeInTheDocument())
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+
+    await waitFor(() =>
+      expect(
+        within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked by you' }),
+      ).toBeInTheDocument(),
+    )
+  })
+
+  it('reports a refused booking as an assertive toast', async () => {
+    signInAs('m-pia')
+    renderWithProviders(<BoardPage />)
+
+    // Pia cannot book the laser, so the dialog blocks submit outright.
+    await userEvent.click(freeCell('Filament printer at 17:00, free'))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm booking' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Booked Filament printer')
   })
 
   it('switches days and shows that day only', async () => {

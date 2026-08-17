@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/toast-context'
 import { MACHINES_BY_ID } from '@/data/workshop'
 import { durationOf, formatClock, formatDuration, formatWeekMinute } from '@/lib/weektime'
 import { useBoard } from '@/state/board-context'
@@ -15,8 +16,8 @@ import styles from './MyBookingsPage.module.css'
 export function MyBookingsPage() {
   const { member } = useSession()
   const { bookingsForMember, cancelBooking, pendingIds } = useBoard()
+  const { notify } = useToast()
   const [confirming, setConfirming] = useState<Booking | null>(null)
-  const [announcement, setAnnouncement] = useState('')
 
   const mine = useMemo(() => bookingsForMember(member.id), [bookingsForMember, member.id])
   const totalMinutes = useMemo(
@@ -100,10 +101,6 @@ export function MyBookingsPage() {
         </tbody>
       </table>
 
-      <p role="status" aria-live="polite" className="visually-hidden">
-        {announcement}
-      </p>
-
       <Dialog
         open={confirming !== null}
         onClose={() => setConfirming(null)}
@@ -124,7 +121,11 @@ export function MyBookingsPage() {
                 if (!booking) return
 
                 const ok = await cancelBooking(booking.id)
-                setAnnouncement(ok ? 'Booking cancelled.' : 'That booking could not be cancelled.')
+                notify(
+                  ok
+                    ? { title: 'Booking cancelled', tone: 'info' }
+                    : { title: 'That booking could not be cancelled', tone: 'error' },
+                )
               }}
             >
               Cancel booking

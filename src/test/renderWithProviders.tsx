@@ -2,6 +2,7 @@ import { render, type RenderOptions, type RenderResult } from '@testing-library/
 import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 
+import { ToastProvider } from '@/components/ui/ToastProvider'
 import { BoardProvider } from '@/state/BoardProvider'
 import { SessionProvider } from '@/state/SessionProvider'
 
@@ -16,9 +17,11 @@ function Providers({ children, route }: { children: ReactNode; route: string }) 
       initialEntries={[route]}
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
-      <SessionProvider>
-        <BoardProvider>{children}</BoardProvider>
-      </SessionProvider>
+      <ToastProvider>
+        <SessionProvider>
+          <BoardProvider>{children}</BoardProvider>
+        </SessionProvider>
+      </ToastProvider>
     </MemoryRouter>
   )
 }
