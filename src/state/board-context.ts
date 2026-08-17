@@ -13,6 +13,7 @@ export interface BoardContextValue {
   /** Ids currently being written; the UI dims these rather than hiding them. */
   pendingIds: ReadonlySet<string>
   createBooking: (draft: BookingDraft) => Promise<CreateResult>
+  updateBooking: (bookingId: string, draft: BookingDraft) => Promise<CreateResult>
   cancelBooking: (bookingId: string) => Promise<boolean>
   bookingsForMachine: (machineId: string) => readonly Booking[]
   bookingsForMember: (memberId: string) => readonly Booking[]

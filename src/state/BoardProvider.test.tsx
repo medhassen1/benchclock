@@ -117,6 +117,64 @@ describe('BoardProvider', () => {
     expect(result.current.bookings).toEqual([])
   })
 
+  it('moves a booking, keeping its id', async () => {
+    const { result } = renderBoard()
+
+    await act(async () => {
+      await result.current.createBooking(draft())
+    })
+    await act(async () => {
+      await result.current.updateBooking(
+        'bk-0001',
+        draft({ startMinute: at(0, 20), endMinute: at(0, 21) }),
+      )
+    })
+
+    expect(result.current.bookings).toHaveLength(1)
+    expect(result.current.bookings[0]).toMatchObject({
+      id: 'bk-0001',
+      startMinute: at(0, 20),
+    })
+  })
+
+  it('restores the original times when a move is refused', async () => {
+    const { result } = renderBoard()
+
+    await act(async () => {
+      await result.current.createBooking(draft())
+    })
+    await act(async () => {
+      await result.current.createBooking(
+        draft({ startMinute: at(0, 20, 30), endMinute: at(0, 21, 30) }),
+      )
+    })
+
+    let outcome: Awaited<ReturnType<typeof result.current.updateBooking>> | undefined
+    await act(async () => {
+      outcome = await result.current.updateBooking(
+        'bk-0001',
+        draft({ startMinute: at(0, 20, 30), endMinute: at(0, 21, 30) }),
+      )
+    })
+
+    expect(outcome?.ok).toBe(false)
+    expect(result.current.bookings.find((b) => b.id === 'bk-0001')).toMatchObject({
+      startMinute: at(0, 19),
+      endMinute: at(0, 20),
+    })
+  })
+
+  it('ignores a move for an id that is not on the board', async () => {
+    const { result } = renderBoard()
+
+    let outcome: Awaited<ReturnType<typeof result.current.updateBooking>> | undefined
+    await act(async () => {
+      outcome = await result.current.updateBooking('bk-9999', draft())
+    })
+
+    expect(outcome?.ok).toBe(false)
+  })
+
   it('cancels a booking', async () => {
     const { result } = renderBoard()
 

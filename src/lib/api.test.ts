@@ -8,6 +8,7 @@ import {
   configureLatency,
   createBooking,
   isAbortError,
+  updateBooking,
   resetIdCounter,
 } from '@/lib/api'
 import { weekMinute } from '@/lib/weektime'
@@ -115,6 +116,51 @@ describe('createBooking', () => {
     ])
 
     expect(settled).toEqual(['fast', 'slow'])
+  })
+})
+
+describe('updateBooking', () => {
+  it('re-times a booking without clashing with its own old slot', async () => {
+    const board = [stored({ id: 'bk-1', memberId: 'm-ilra' })]
+
+    const moved = await updateBooking(
+      'bk-1',
+      draft({ startMinute: at(0, 18, 30), endMinute: at(0, 19, 30) }),
+      board,
+    )
+
+    expect(moved).toMatchObject({ id: 'bk-1', startMinute: at(0, 18, 30) })
+  })
+
+  it('keeps the original id and creation order', async () => {
+    const board = [stored({ id: 'bk-1', memberId: 'm-ilra', createdAt: 7 })]
+
+    const moved = await updateBooking('bk-1', draft(), board)
+
+    expect(moved.id).toBe('bk-1')
+    expect(moved.createdAt).toBe(7)
+  })
+
+  it('still refuses a move that clashes with a different booking', async () => {
+    const board = [
+      stored({ id: 'bk-1', memberId: 'm-ilra' }),
+      stored({ id: 'bk-2', startMinute: at(0, 20), endMinute: at(0, 21) }),
+    ]
+
+    const error = await updateBooking(
+      'bk-1',
+      draft({ startMinute: at(0, 20), endMinute: at(0, 21) }),
+      board,
+    ).catch((e) => e)
+
+    expect(error).toBeInstanceOf(BookingRejectedError)
+    expect((error as BookingRejectedError).rejections.map((r) => r.code)).toContain(
+      'overlaps-booking',
+    )
+  })
+
+  it('rejects an unknown booking id', async () => {
+    await expect(updateBooking('bk-9999', draft(), [])).rejects.toBeInstanceOf(NotFoundError)
   })
 })
 

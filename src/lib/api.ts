@@ -110,6 +110,38 @@ export async function createBooking(
   return { ...draft, id: `bk-${String(nextId).padStart(4, '0')}`, createdAt: nextId }
 }
 
+/**
+ * Re-times an existing booking. The booking under edit is excluded from the
+ * clash and allowance checks, so moving it by one slot does not read as a
+ * collision with its own old position.
+ */
+export async function updateBooking(
+  bookingId: string,
+  draft: BookingDraft,
+  board: readonly Booking[],
+  options: RequestOptions = {},
+): Promise<Booking> {
+  await wait(latencyResolver(`update:${bookingId}`), options.signal)
+
+  const existing = board.find((booking) => booking.id === bookingId)
+  if (!existing) throw new NotFoundError(`Booking ${bookingId}`)
+
+  const machine = MACHINES_BY_ID.get(draft.machineId)
+  const member = MEMBERS_BY_ID.get(draft.memberId)
+  if (!machine) throw new NotFoundError(`Machine ${draft.machineId}`)
+  if (!member) throw new NotFoundError(`Member ${draft.memberId}`)
+
+  const rejections = findRejections(draft, {
+    machine,
+    member,
+    existing: board,
+    ignoreBookingId: bookingId,
+  })
+  if (rejections.length > 0) throw new BookingRejectedError(rejections)
+
+  return { ...existing, ...draft }
+}
+
 export async function cancelBooking(
   bookingId: string,
   board: readonly Booking[],

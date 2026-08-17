@@ -90,6 +90,46 @@ export function BoardProvider({ children }: { children: ReactNode }) {
     [setBookings, markPending],
   )
 
+  const updateBooking = useCallback(
+    async (bookingId: string, draft: BookingDraft): Promise<CreateResult> => {
+      const board = latest.current
+      const previous = board.find((booking) => booking.id === bookingId)
+      if (!previous) return { ok: false }
+
+      markPending(bookingId, true)
+      // Show the new time straight away, keeping the same id and row.
+      setBookings((current) =>
+        current.map((booking) => (booking.id === bookingId ? { ...booking, ...draft } : booking)),
+      )
+
+      try {
+        const saved = await api.updateBooking(bookingId, draft, board)
+        setBookings((current) =>
+          current.map((booking) => (booking.id === bookingId ? saved : booking)),
+        )
+        return { ok: true, booking: saved }
+      } catch (error) {
+        // Put the original times back rather than stranding it at the new one.
+        setBookings((current) =>
+          current.map((booking) => (booking.id === bookingId ? previous : booking)),
+        )
+
+        if (error instanceof api.BookingRejectedError) {
+          return { ok: false, rejections: error.rejections }
+        }
+        return {
+          ok: false,
+          rejections: [
+            { code: 'overlaps-booking', message: 'The board could not be updated. Try again.' },
+          ],
+        }
+      } finally {
+        markPending(bookingId, false)
+      }
+    },
+    [setBookings, markPending],
+  )
+
   const cancelBooking = useCallback(
     async (bookingId: string): Promise<boolean> => {
       const board = latest.current
@@ -143,11 +183,20 @@ export function BoardProvider({ children }: { children: ReactNode }) {
       bookings,
       pendingIds,
       createBooking,
+      updateBooking,
       cancelBooking,
       bookingsForMachine,
       bookingsForMember,
     }),
-    [bookings, pendingIds, createBooking, cancelBooking, bookingsForMachine, bookingsForMember],
+    [
+      bookings,
+      pendingIds,
+      createBooking,
+      updateBooking,
+      cancelBooking,
+      bookingsForMachine,
+      bookingsForMember,
+    ],
   )
 
   return <BoardContext.Provider value={value}>{children}</BoardContext.Provider>
