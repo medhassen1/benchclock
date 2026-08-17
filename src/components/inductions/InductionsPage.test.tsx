@@ -163,8 +163,30 @@ describe('InductionsPage', () => {
 
     const card = screen.getByRole('group', { name: 'Your sign-offs' })
     expect(card).toHaveTextContent('Laser basic, CNC basic, CNC advanced, Metalwork')
-    expect(card).toHaveTextContent('1 still to earn: Textiles')
+    expect(card).toHaveTextContent('1 sign-off still to earn')
+    expect(card).toHaveTextContent('Textiles')
     expect(card).toHaveTextContent('You have no induction seats booked.')
+  })
+
+  it('points at the soonest session that would earn a missing sign-off', () => {
+    renderPage()
+
+    expect(screen.getByRole('group', { name: 'Your sign-offs' })).toHaveTextContent(
+      'next session Fri 16:00, Studio',
+    )
+  })
+
+  it('says when every session for a missing sign-off is out of reach', () => {
+    seedEnrolments([
+      { inductionId: 'ind-textiles-sun', memberId: 'm-tomas' },
+      { inductionId: 'ind-textiles-sun', memberId: 'm-nour' },
+    ])
+    seedBookings([booking({ memberId: 'm-ilra', startMinute: at(4, 16), endMinute: at(4, 17) })])
+    renderPage()
+
+    expect(screen.getByRole('group', { name: 'Your sign-offs' })).toHaveTextContent(
+      'no session you can join yet',
+    )
   })
 
   it('says when a member holds nothing yet', () => {

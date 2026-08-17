@@ -8,6 +8,7 @@ import { TICKET_LABELS } from '@/data/workshop'
 import {
   enrolmentBlockers,
   machinesUnlockedBy,
+  nextJoinableInduction,
   seatsInWords,
   seatsRemaining,
 } from '@/lib/inductions'
@@ -15,6 +16,7 @@ import { durationOf, formatClock, formatDuration, formatWeekMinute } from '@/lib
 import { useBoard } from '@/state/board-context'
 import { useSession } from '@/state/session-context'
 import { useStock } from '@/state/stock-context'
+import type { Ticket } from '@/types'
 
 import styles from './InductionsPage.module.css'
 
@@ -39,14 +41,19 @@ export function InductionsPage() {
   }, [onlyNeeded, member.tickets])
 
   const missing = useMemo(() => {
-    const tickets: string[] = []
+    const tickets: Ticket[] = []
     for (const induction of INDUCTIONS) {
       if (member.tickets.includes(induction.grants)) continue
-      const label = TICKET_LABELS[induction.grants]
-      if (!tickets.includes(label)) tickets.push(label)
+      if (!tickets.includes(induction.grants)) tickets.push(induction.grants)
     }
-    return tickets
-  }, [member.tickets])
+
+    // Paired with the soonest session they could actually take, so the card
+    // answers "what now?" rather than only "what is missing?".
+    return tickets.map((ticket) => ({
+      ticket,
+      next: nextJoinableInduction(ticket, member, enrolments, myBookings),
+    }))
+  }, [member, enrolments, myBookings])
 
   const mySeats = enrolments.filter((enrolment) => enrolment.memberId === member.id).length
 
@@ -76,10 +83,27 @@ export function InductionsPage() {
             </Badge>
           ) : (
             <Badge tone="warn" icon="!">
-              {missing.length} still to earn: {missing.join(', ')}
+              {missing.length === 1
+                ? '1 sign-off still to earn'
+                : `${missing.length} sign-offs still to earn`}
             </Badge>
           )}
         </p>
+
+        {missing.length > 0 ? (
+          <ul className={styles.missing}>
+            {missing.map(({ ticket, next }) => (
+              <li key={ticket} className={styles.missingRow}>
+                <span className={styles.missingName}>{TICKET_LABELS[ticket]}</span>
+                <span className={styles.muted}>
+                  {next
+                    ? `next session ${formatWeekMinute(next.startMinute)}, ${next.location}`
+                    : 'no session you can join yet'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
         <p className={styles.seatsHeld}>
           {mySeats === 0
