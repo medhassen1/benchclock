@@ -1,0 +1,168 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 880px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.card {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.cardHeading {
+  margin-bottom: var(--space-3);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.held {
+  font-size: 16px;
+  font-weight: 550;
+}
+
+.note {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.seatsHeld {
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.empty {
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.sessionMain {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.sessionSide {
+  display: flex;
+  flex: 0 1 220px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.sessionTitle {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.when {
+  margin-top: 2px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.unlocks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.unlocksLabel {
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+.seats {
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.meter {
+  inline-size: 100%;
+  height: 6px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+}
+
+.reason {
+  display: flex;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.reasonMark {
+  color: var(--stop);
+  font-size: 10px;
+  line-height: 1.6;
+}
