@@ -170,6 +170,51 @@ describe('BoardPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Booked Filament printer')
   })
 
+  it('opens machine details from the row header', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Big laser.*show details/ }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveAccessibleName('Big laser')
+    expect(dialog).toHaveAccessibleDescription('Laser cutter · Bay 1')
+    expect(within(dialog).getByText('2 h')).toBeInTheDocument()
+    expect(within(dialog).getByText('Nothing booked — the whole week is open.')).toBeInTheDocument()
+  })
+
+  it('shows the machine\u2019s week and flags a missing sign-off', async () => {
+    signInAs('m-pia')
+    renderWithProviders(<BoardPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: /Big laser.*show details/ }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Laser basic needed')).toBeInTheDocument()
+    expect(within(dialog).getByText('In service')).toBeInTheDocument()
+  })
+
+  it('lists existing bookings in the machine details', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await book()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: /Big laser.*show details/ }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Mon 17:00 – 18:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('You')).toBeInTheDocument()
+  })
+
+  it('marks an out-of-service machine in its details', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await userEvent.click(screen.getByRole('button', { name: /MIG welder.*show details/ }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Out of service')).toBeInTheDocument()
+  })
+
   it('switches days and shows that day only', async () => {
     renderWithProviders(<BoardPage />)
 
