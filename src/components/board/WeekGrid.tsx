@@ -16,6 +16,7 @@ export interface WeekGridProps {
   pendingIds: ReadonlySet<string>
   onSelectSlot: (machineId: string, startMinute: number) => void
   onSelectBooking: (booking: Booking) => void
+  onSelectMachine: (machine: Machine) => void
 }
 
 interface Cell {
@@ -40,6 +41,7 @@ export function WeekGrid({
   pendingIds,
   onSelectSlot,
   onSelectBooking,
+  onSelectMachine,
 }: WeekGridProps) {
   const slots = useMemo(() => slotsForDay(day, hours), [day, hours])
   const [focused, setFocused] = useState({ row: 0, column: 0 })
@@ -141,10 +143,17 @@ export function WeekGrid({
         {machines.map((machine, rowIndex) => (
           <div role="row" key={machine.id} className={styles.row}>
             <span role="rowheader" className={styles.rowHeader}>
-              <span className={styles.machineCode} aria-hidden="true">
-                {machine.code}
-              </span>
-              <span className={styles.machineName}>{machine.name}</span>
+              <button
+                type="button"
+                className={styles.machineButton}
+                onClick={() => onSelectMachine(machine)}
+              >
+                <span className={styles.machineCode} aria-hidden="true">
+                  {machine.code}
+                </span>
+                <span className={styles.machineName}>{machine.name}</span>
+                <span className="visually-hidden">, show details</span>
+              </button>
             </span>
 
             {slots.map((slot, columnIndex) => {

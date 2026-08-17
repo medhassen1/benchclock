@@ -9,9 +9,10 @@ import { cx } from '@/lib/cx'
 import { formatClock, formatWeekMinute } from '@/lib/weektime'
 import { useBoard } from '@/state/board-context'
 import { useSession } from '@/state/session-context'
-import type { Booking, BookingDraft, Rejection } from '@/types'
+import type { Booking, BookingDraft, Machine, Rejection } from '@/types'
 
 import { BookingDialog } from './BookingDialog'
+import { MachineDialog } from './MachineDialog'
 import { WeekGrid } from './WeekGrid'
 import styles from './BoardPage.module.css'
 
@@ -29,6 +30,7 @@ export function BoardPage() {
   const [hideUnavailable, setHideUnavailable] = useState(false)
   const [target, setTarget] = useState<SlotTarget | null>(null)
   const [inspected, setInspected] = useState<Booking | null>(null)
+  const [inspectedMachine, setInspectedMachine] = useState<Machine | null>(null)
   const [saving, setSaving] = useState(false)
   const [rejections, setRejections] = useState<readonly Rejection[]>([])
 
@@ -156,6 +158,7 @@ export function BoardPage() {
           setTarget({ machineId, startMinute })
         }}
         onSelectBooking={setInspected}
+        onSelectMachine={setInspectedMachine}
       />
 
       <p className={styles.legend}>
@@ -181,6 +184,15 @@ export function BoardPage() {
           serverRejections={rejections}
           onSubmit={submit}
           onClose={() => setTarget(null)}
+        />
+      ) : null}
+
+      {inspectedMachine ? (
+        <MachineDialog
+          machine={inspectedMachine}
+          member={member}
+          bookings={bookings.filter((booking) => booking.machineId === inspectedMachine.id)}
+          onClose={() => setInspectedMachine(null)}
         />
       ) : null}
 
