@@ -1,0 +1,110 @@
+.region {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(360px, calc(100vw - var(--space-6)));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.4);
+}
+
+.mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.description {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.action,
+.dismiss {
+  flex: none;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.action {
+  padding: 0;
+  color: var(--accent-soft);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.dismiss {
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.dismiss:hover {
+  color: var(--text);
+}
+
+.info {
+  border-left-color: var(--accent);
+}
+.info .mark {
+  background: rgb(217 139 58 / 0.2);
+  color: var(--accent-soft);
+}
+
+.success {
+  border-left-color: var(--ok);
+}
+.success .mark {
+  background: rgb(111 174 114 / 0.2);
+  color: #8cc78f;
+}
+
+.warning {
+  border-left-color: var(--warn);
+}
+.warning .mark {
+  background: rgb(217 178 58 / 0.2);
+  color: #e0c463;
+}
+
+.error {
+  border-left-color: var(--stop);
+}
+.error .mark {
+  background: rgb(212 103 79 / 0.2);
+  color: #e28b74;
+}
