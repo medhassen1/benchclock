@@ -1,0 +1,131 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scroller {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  margin-bottom: var(--space-2);
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: left;
+}
+
+.corner {
+  width: 1px;
+}
+
+.hourHead,
+.totalHead {
+  padding: 0 var(--space-1);
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dayHead {
+  padding-right: var(--space-2);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 550;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.cell {
+  width: 34px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-align: center;
+}
+
+.mark {
+  font-size: 11px;
+}
+
+/* Bands step up in both fill and border, so the grid still reads when the
+   page is printed or forced into a high-contrast palette. */
+.band0 {
+  background: var(--surface-raised);
+  color: var(--text-faint);
+}
+
+.band1 {
+  background: rgb(217 139 58 / 0.16);
+  border-color: rgb(217 139 58 / 0.3);
+}
+
+.band2 {
+  background: rgb(217 139 58 / 0.34);
+  border-color: rgb(217 139 58 / 0.48);
+}
+
+.band3 {
+  background: rgb(217 139 58 / 0.58);
+  border-color: rgb(217 139 58 / 0.7);
+}
+
+.band4 {
+  background: var(--accent);
+  border-color: var(--accent-soft);
+  color: var(--accent-contrast);
+  font-weight: 650;
+}
+
+.shut {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-faint);
+}
+
+.total {
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  color: var(--text-faint);
+  font-size: 11px;
+  list-style: none;
+}
+
+.keyItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.empty {
+  color: var(--text-muted);
+  font-size: 14px;
+}
