@@ -215,6 +215,64 @@ describe('BoardPage', () => {
     expect(within(dialog).getByText('Out of service')).toBeInTheDocument()
   })
 
+  it('moves a booking half an hour later', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await book()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await userEvent.click(
+      within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked by you' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Half an hour later' }))
+
+    await waitFor(() =>
+      expect(
+        within(grid()).getByRole('button', { name: 'Big laser at 18:00, booked by you' }),
+      ).toBeInTheDocument(),
+    )
+    expect(freeCell()).toBeInTheDocument()
+  })
+
+  it('refuses a move that would run before opening time', async () => {
+    renderWithProviders(<BoardPage />)
+
+    await book()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await userEvent.click(
+      within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked by you' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Half an hour earlier' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not move that booking')
+    // The booking stays where it was.
+    expect(
+      within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked by you' }),
+    ).toBeInTheDocument()
+  })
+
+  it('offers no move controls on another member\u2019s booking', async () => {
+    const first = renderWithProviders(<BoardPage />)
+    await book()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    first.unmount()
+
+    signInAs('m-pia')
+    renderWithProviders(<BoardPage />)
+
+    await userEvent.click(
+      within(grid()).getByRole('button', { name: 'Big laser at 17:00, booked' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+
+    expect(
+      within(dialog).queryByRole('button', { name: 'Half an hour later' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('switches days and shows that day only', async () => {
     renderWithProviders(<BoardPage />)
 
