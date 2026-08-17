@@ -20,6 +20,7 @@ import {
   nextWindowFor,
   serviceState,
   serviceStatus,
+  sortServiceLog,
   windowsForMachine,
 } from '@/lib/maintenance'
 import { weekMinute } from '@/lib/weektime'
@@ -350,9 +351,39 @@ describe('service status', () => {
     expect(latestServiceFor('laser-a', [])).toBeUndefined()
   })
 
+  it('breaks a same-millisecond tie by id, newest last written', () => {
+    const log = [
+      entry({ id: 'svc-0002', runMinutesAtService: 500, recordedAt: 7 }),
+      entry({ id: 'svc-0001', runMinutesAtService: 100, recordedAt: 7 }),
+    ]
+
+    expect(latestServiceFor('laser-a', log)?.id).toBe('svc-0002')
+  })
+
   it('answers the overdue question directly', () => {
     expect(isOverdueForService('laser-a', 300, [], tracked)).toBe(true)
     expect(isOverdueForService('laser-a', 0, [], tracked)).toBe(false)
+  })
+})
+
+describe('sortServiceLog', () => {
+  it('puts the newest entry first and leaves the input alone', () => {
+    const log = [
+      entry({ id: 'svc-0001', recordedAt: 1 }),
+      entry({ id: 'svc-0003', recordedAt: 5 }),
+      entry({ id: 'svc-0002', recordedAt: 5 }),
+    ]
+
+    expect(sortServiceLog(log).map((found) => found.id)).toEqual([
+      'svc-0003',
+      'svc-0002',
+      'svc-0001',
+    ])
+    expect(log[0].id).toBe('svc-0001')
+  })
+
+  it('sorts an empty log to an empty log', () => {
+    expect(sortServiceLog([])).toEqual([])
   })
 })
 

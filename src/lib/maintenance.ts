@@ -121,6 +121,14 @@ export function bookedMinutesForMachine(
     .reduce((sum, booking) => sum + durationOf(booking), 0)
 }
 
+/**
+ * True when `a` was recorded after `b`. Ids break the tie, because two entries
+ * saved in the same millisecond would otherwise order arbitrarily.
+ */
+export function isNewerService(a: ServiceLogEntry, b: ServiceLogEntry): boolean {
+  return a.recordedAt === b.recordedAt ? a.id > b.id : a.recordedAt > b.recordedAt
+}
+
 /** The most recently recorded service for a machine, or undefined. */
 export function latestServiceFor(
   machineId: string,
@@ -129,9 +137,14 @@ export function latestServiceFor(
   return log
     .filter((entry) => entry.machineId === machineId)
     .reduce<ServiceLogEntry | undefined>(
-      (latest, entry) => (latest && latest.recordedAt >= entry.recordedAt ? latest : entry),
+      (latest, entry) => (latest && !isNewerService(entry, latest) ? latest : entry),
       undefined,
     )
+}
+
+/** Newest first, which is the order a log is read in. */
+export function sortServiceLog(log: readonly ServiceLogEntry[]): ServiceLogEntry[] {
+  return [...log].sort((a, b) => b.recordedAt - a.recordedAt || b.id.localeCompare(a.id))
 }
 
 export type ServiceState = 'untracked' | 'ok' | 'due-soon' | 'overdue'
